@@ -1,0 +1,8 @@
+# deepseek-harness-openai-codex-plugin bundle patch.
+#
+# Applies ONE insert over the profile root: registers the openai-codex plugin
+# so it is active when dsh boots.  The user's own cordis.patch.yml and any
+# other bundle layers can patch this row further by its id ("openai-codex").
+- insert:
+    - id: openai-codex
+      name: deepseek-harness-openai-codex-plugin
