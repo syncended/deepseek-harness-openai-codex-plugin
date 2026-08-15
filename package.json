@@ -1,5 +1,5 @@
 {
-  "name": "deepseek-harness-openai-codex-plugin",
+  "name": "@syncended/dsh-codex",
   "version": "0.1.0",
   "description": "OpenAI Codex (ChatGPT Plus/Pro) as an LLM provider for the DeepSeek Harness, with headless device-code OAuth login.",
   "license": "MIT",
@@ -14,6 +14,9 @@
     "lib/index.js",
     "cordis.patch.yml"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"

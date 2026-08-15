@@ -24,7 +24,7 @@ refreshes automatically without a restart.
 
 ```bash
 # Add the plugin to your profile (web, tui, headless, …)
-dsh plugin --profile web add deepseek-harness-openai-codex-plugin
+dsh plugin --profile web add @syncended/dsh-codex
 
 # Register the Codex route in your provider settings
 dsh settings set llm-pi-ai.providers.openai-codex.displayName "OpenAI Codex"
