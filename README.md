@@ -29,6 +29,9 @@ dsh plugin --profile web add @syncended/dsh-codex
 # Restart dsh
 ```
 
+> **Note:** the profile is a pnpm workspace root, so on some `dsh` versions the
+> `add` command needs `-w`: `dsh plugin --profile web add -w @syncended/dsh-codex`.
+
 The plugin registers the `openai-codex` route defaults automatically, so no
 `dsh settings set` is needed. Then run **`/codex login`** in the DSH chat input
 and follow the instructions.
