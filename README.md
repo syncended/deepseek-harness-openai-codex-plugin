@@ -26,14 +26,12 @@ refreshes automatically without a restart.
 # Add the plugin to your profile (web, tui, headless, …)
 dsh plugin --profile web add @syncended/dsh-codex
 
-# Register the Codex route in your provider settings
-dsh settings set llm-pi-ai.providers.openai-codex.displayName "OpenAI Codex"
-dsh settings set llm-pi-ai.providers.openai-codex.apiKeyEnv OPENAI_CODEX_TOKEN
-
 # Restart dsh
 ```
 
-Then run **`/codex login`** in the DSH chat input and follow the instructions.
+The plugin registers the `openai-codex` route defaults automatically, so no
+`dsh settings set` is needed. Then run **`/codex login`** in the DSH chat input
+and follow the instructions.
 
 ## Commands
 
