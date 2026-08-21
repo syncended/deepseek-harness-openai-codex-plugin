@@ -161,7 +161,7 @@ test("Codex limits load on mount without opening the popup", async () => {
   cleanup();
 });
 
-test("Codex limits use window durations instead of API field positions", async () => {
+test("Codex limits keep primary windows above model-specific limits", async () => {
   let stateCall = 0;
   const react = {
     createElement(type, props, ...children) {
@@ -198,6 +198,7 @@ test("Codex limits use window durations instead of API field positions", async (
     "limits.primary": "5-hour limit",
     "limits.secondary": "7-day limit",
     "limits.named": "{name} · {window}",
+    "limits.modelSpecific": "Model-specific limits",
   };
   const t = (key) => translations[key] ?? key;
   let component;
@@ -226,6 +227,7 @@ test("Codex limits use window durations instead of API field positions", async (
 
   const tree = component({ wide: true, t });
   const labels = [];
+  const sectionTitles = [];
   const visit = (node) => {
     if (Array.isArray(node)) {
       node.forEach(visit);
@@ -233,12 +235,14 @@ test("Codex limits use window durations instead of API field positions", async (
     }
     if (!node || typeof node !== "object") return;
     if (node.type?.name === "LimitRow" && node.props.value) labels.push(node.props.label);
+    if (node.props.className === "dshCodexLimitsSectionTitle") sectionTitles.push(node.children[0]);
     visit(node.children);
   };
   visit(tree);
   assert.deepEqual(labels, [
-    "GPT-5.3-Codex-Spark · 5-hour limit",
     "7-day limit",
+    "GPT-5.3-Codex-Spark · 5-hour limit",
     "GPT-5.3-Codex-Spark · 7-day limit",
   ]);
+  assert.deepEqual(sectionTitles, ["Model-specific limits"]);
 });
