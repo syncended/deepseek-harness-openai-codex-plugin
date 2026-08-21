@@ -154,10 +154,21 @@ test("normalizes Codex usage and extracts the account id", () => {
       primary_window: { used_percent: 17.5, reset_at: 1_740_000_000, limit_window_seconds: 18_000 },
       secondary_window: { used_percent: 41, reset_at: 1_740_500_000, limit_window_seconds: 604_800 },
     },
+    additional_rate_limits: [{
+      limit_name: "GPT-5.3-Codex-Spark",
+      rate_limit: {
+        primary_window: { used_percent: 7, reset_at: 1_740_010_000, limit_window_seconds: 18_000 },
+        secondary_window: { used_percent: 9, reset_at: 1_740_510_000, limit_window_seconds: 604_800 },
+      },
+    }],
     credits: { has_credits: true, unlimited: false, balance: 12.75 },
   });
   assert.equal(limits.primary.usedPercent, 17.5);
   assert.equal(limits.primary.resetAt, 1_740_000_000_000);
+  assert.deepEqual(limits.additional.map(({ name, window, windowSeconds }) => ({ name, window, windowSeconds })), [
+    { name: "GPT-5.3-Codex-Spark", window: "primary", windowSeconds: 18_000 },
+    { name: "GPT-5.3-Codex-Spark", window: "secondary", windowSeconds: 604_800 },
+  ]);
   assert.equal(limits.credits.balance, 12.75);
 
   const encode = (value) => Buffer.from(JSON.stringify(value)).toString("base64url");

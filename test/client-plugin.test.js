@@ -72,8 +72,10 @@ test("client plugin registers settings and a Codex limits footer action", async 
   };
 
   plugin.apply(ctx);
-  assert.ok(dictionaries.en["limits.primary"]);
-  assert.ok(dictionaries.zh["limits.primary"]);
+  assert.equal(dictionaries.en["limits.primary"], "5-hour limit");
+  assert.equal(dictionaries.en["limits.secondary"], "7-day limit");
+  assert.equal(dictionaries.zh["limits.primary"], "5 小时限额");
+  assert.equal(dictionaries.zh["limits.secondary"], "7 天限额");
   assert.deepEqual(injected, ["settings.section", "sidebar.footer.action"]);
   assert.equal(registrations.get("openai-codex").options.label(), "OpenAI Codex");
   assert.equal(typeof registrations.get("openai-codex").component, "function");
@@ -157,4 +159,86 @@ test("Codex limits load on mount without opening the popup", async () => {
   assert.equal(intervals.length, 1);
   assert.equal(intervals[0].delay, 60000);
   cleanup();
+});
+
+test("Codex limits use window durations instead of API field positions", async () => {
+  let stateCall = 0;
+  const react = {
+    createElement(type, props, ...children) {
+      return { type, props: props ?? {}, children };
+    },
+    useCallback(callback) {
+      return callback;
+    },
+    useEffect() {},
+    useRef(value) {
+      return { current: value };
+    },
+    useState(initial) {
+      stateCall += 1;
+      if (stateCall === 1) return [true, () => {}];
+      if (stateCall === 2) {
+        return [{
+          status: "ready",
+          value: {
+            primary: { usedPercent: 10, windowSeconds: 604_800 },
+            secondary: null,
+            additional: [
+              { name: "GPT-5.3-Codex-Spark", window: "primary", usedPercent: 20, windowSeconds: 18_000 },
+              { name: "GPT-5.3-Codex-Spark", window: "secondary", usedPercent: 30, windowSeconds: 604_800 },
+            ],
+          },
+        }, () => {}];
+      }
+      return [initial, () => {}];
+    },
+  };
+  const plugin = await loadClientPlugin({ react, fetch: async () => ({ ok: true, json: async () => ({}) }) });
+  const translations = {
+    "limits.primary": "5-hour limit",
+    "limits.secondary": "7-day limit",
+    "limits.named": "{name} · {window}",
+  };
+  const t = (key) => translations[key] ?? key;
+  let component;
+  plugin.apply({
+    effect(factory) {
+      return factory();
+    },
+    locale: {
+      register() {
+        return () => {};
+      },
+      bind() {
+        return t;
+      },
+    },
+    slots: {
+      inject(name, factory) {
+        if (name === "sidebar.footer.action") factory();
+      },
+      register(options, value) {
+        if (options.id === "openai-codex-limits") component = value;
+        return () => {};
+      },
+    },
+  });
+
+  const tree = component({ wide: true, t });
+  const labels = [];
+  const visit = (node) => {
+    if (Array.isArray(node)) {
+      node.forEach(visit);
+      return;
+    }
+    if (!node || typeof node !== "object") return;
+    if (node.type?.name === "LimitRow" && node.props.value) labels.push(node.props.label);
+    visit(node.children);
+  };
+  visit(tree);
+  assert.deepEqual(labels, [
+    "GPT-5.3-Codex-Spark · 5-hour limit",
+    "7-day limit",
+    "GPT-5.3-Codex-Spark · 7-day limit",
+  ]);
 });
